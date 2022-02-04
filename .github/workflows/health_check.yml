@@ -10,16 +10,18 @@ jobs:
     name: check
     runs-on: ubuntu-latest
     steps:
-      - run: curl -sSf ${{ secrets.SITE_URL }} > /dev/null
+      - name: Check URL
+        run: curl -sSf ${{ secrets.SITE_URL }} > /dev/null
 
-  notify:
-    name: notify
+  notify-failure:
+    name: notify-failure
     runs-on: ubuntu-latest
     needs: [check]
     if: ${{ failure() }}
     steps:
       - run: echo failure > status.txt
-      - uses: actions/upload-artifact@v2
+      - name: Save failure status
+        uses: actions/upload-artifact@v2
         with:
           name: status
           path: status.txt
@@ -29,3 +31,25 @@ jobs:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
           message: "🔴 ${{ secrets.SITE_URL }} is offline"
+
+  notify-success:
+    name: notify-success
+    runs-on: ubuntu-latest
+    needs: [check]
+    steps:
+      - name: Get current status
+        uses: actions/download-artifact@v2
+        with:
+          name: status
+      - run: grep -q failure status.txt
+      - name: Send Discord notification
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          message: "🟢 ${{ secrets.SITE_URL }} is back online"
+      - name: Save success status
+        uses: actions/upload-artifact@v2
+        with:
+          name: status
+          path: status.txt
