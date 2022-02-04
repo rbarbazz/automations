@@ -1,0 +1,24 @@
+name: Health Check
+
+on: workflow_dispatch
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sSf ${{ secrets.SITE_URL }} > /dev/null
+
+  notify:
+    name: notify
+    runs-on: ubuntu-latest
+    needs: [check]
+    if: ${{ failure() }}
+    steps:
+      - name: Send Discord notification
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          message: "Alert: ${{ secrets.SITE_URL }} is offline"
