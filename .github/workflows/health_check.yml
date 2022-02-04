@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check URL
-        run: curl -sSf ${{ secrets.SITE_URL }} > /dev/null
+        run: curl -sSf ${{ secrets.SITE_URL }} -m 30 > /dev/null
 
   notify-failure:
     name: notify-failure
@@ -19,12 +19,6 @@ jobs:
     needs: [check]
     if: ${{ failure() }}
     steps:
-      - run: echo failure > status.txt
-      - name: Save failure status
-        uses: actions/upload-artifact@v2
-        with:
-          name: status
-          path: status.txt
       - name: Send Discord notification
         uses: appleboy/discord-action@master
         with:
@@ -37,19 +31,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check]
     steps:
-      - name: Get current status
-        uses: actions/download-artifact@v2
+      - uses: octokit/request-action@v2.x
+        id: get_workflows_runs
         with:
-          name: status
-      - run: grep -q failure status.txt
+          route: GET /repos/rbarbazz/automations/actions/runs
+          owner: octokit
+          repo: request-action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Send Discord notification
+        if: fromJson(steps.get_workflows_runs.outputs.data).workflow_runs[1].conclusion != 'success'
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
           message: "🟢 ${{ secrets.SITE_URL }} is back online"
-      - name: Save success status
-        uses: actions/upload-artifact@v2
-        with:
-          name: status
-          path: status.txt
