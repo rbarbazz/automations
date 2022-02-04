@@ -9,8 +9,7 @@ jobs:
     name: check
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          curl -sSf ${{ secrets.SITE_URL }} > /dev/null
+      - run: curl -sSf ${{ secrets.SITE_URL }} > /dev/null
 
   notify:
     name: notify
@@ -18,6 +17,11 @@ jobs:
     needs: [check]
     if: ${{ failure() }}
     steps:
+      - run: echo failure > status.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          name: status
+          path: status.txt
       - name: Send Discord notification
         uses: appleboy/discord-action@master
         with:
