@@ -23,4 +23,4 @@ jobs:
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
-          message: "Alert: ${{ secrets.SITE_URL }} is offline"
+          message: "🔴 ${{ secrets.SITE_URL }} is offline"
