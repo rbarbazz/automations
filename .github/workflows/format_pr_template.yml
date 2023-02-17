@@ -3,8 +3,7 @@ name: Format PR template
 on:
     pull_request:
         types:
-            - 'opened'
-            - synchronize
+            - opened
 
 jobs:
     format-pr-template:
