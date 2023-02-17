@@ -15,7 +15,9 @@ jobs:
                   fetch-depth: 0
             - id: generate-commit-list
               run: |
-                  echo "FORMATTED_COMMIT_LIST=`git log --pretty="- https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/%h: %s" --reverse ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}`" >> $GITHUB_OUTPUT
+                  echo "FORMATTED_COMMIT_LIST<<EOF" >> $GITHUB_OUTPUT
+                  echo "`git log --pretty="- https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/%h: %s" --reverse ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}`" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
             - uses: tzkhan/pr-update-action@v2
               with:
                   repo-token: '${{ secrets.GITHUB_TOKEN }}'
