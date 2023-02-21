@@ -1,0 +1,29 @@
+name: Format PR template
+
+on:
+    pull_request:
+        types:
+            - opened
+
+jobs:
+    format-pr-template:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - id: generate-commit-list
+              run: |
+                  echo "FORMATTED_COMMIT_LIST<<EOF" >> $GITHUB_OUTPUT
+                  echo "`git log --pretty="- [%h](https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/commits/%h): %s" --reverse ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}`" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+            - uses: tzkhan/pr-update-action@v2
+              with:
+                  repo-token: '${{ secrets.GITHUB_TOKEN }}'
+                  base-branch-regex: '${{ github.event.pull_request.base.ref }}'
+                  head-branch-regex: '${{ github.event.pull_request.head.ref }}'
+                  body-update-action: 'suffix'
+                  body-template: |
+                      ## Commit Breakdown
+
+                      ${{ steps.generate-commit-list.outputs.FORMATTED_COMMIT_LIST }}
